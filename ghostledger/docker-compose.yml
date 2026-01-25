@@ -18,10 +18,11 @@ services:
 
   # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.2.9
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    # BUILD LOCALLY: Bypasses failing GitHub Actions
+    build:
+      context: .
+    image: ghostledger-local:v1.3.0
+    # image: jcooper21/ghostledger:v1.2.9
     restart: on-failure
     stop_grace_period: 30s
     ports:
