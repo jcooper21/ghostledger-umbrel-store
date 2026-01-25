@@ -19,7 +19,7 @@ services:
   
   # Main GhostLedger application
   web:
-    image: ghostledger/ghostledger:v1.0.0
+    image: YOUR_DOCKERHUB/ghostledger:v1.0.0
     # For local builds during development, comment out 'image' and use:
     # build:
     #   context: .
