@@ -57,7 +57,7 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 
 # Copy application code
-COPY --chown=ghostledger:ghostledger *.py ./
+COPY --chown=ghostledger:ghostledger . ./
 
 # Switch to non-root user
 USER ghostledger
