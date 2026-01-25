@@ -14,9 +14,9 @@
 
 # =============================================================================
 # Stage 1: Builder
-FROM python:3.11-bookworm AS builder
+FROM python:3.11-slim AS builder
 
-# Install specific system dependencies often needed by Pandas/Streamlit
+# Install specific system dependencies needed for Pandas/Numpy on ARM
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libopenblas-dev \
@@ -26,14 +26,15 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime
-FROM python:3.11-bookworm
+FROM python:3.11-slim
 
 # Metadata
 LABEL org.opencontainers.image.title="GhostLedger"
-LABEL org.opencontainers.image.version="1.2.8"
+LABEL org.opencontainers.image.version="1.2.9"
 
 # Fix locale (prevent crash on emoji)
 ENV LANG=C.UTF-8 \
@@ -41,9 +42,10 @@ ENV LANG=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Runtime dependencies
+# Runtime dependencies (libopenblas for numpy, procps for health checks if needed)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libopenblas-0 \
+    libopenblas0 \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --uid 1000 --create-home --shell /bin/bash ghostledger
