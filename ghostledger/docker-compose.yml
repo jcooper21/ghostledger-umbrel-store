@@ -7,13 +7,9 @@
 # - APP_DATA_DIR: Persistent storage location provided by Umbrel
 # - Network isolation: App runs in Umbrel's Docker network
 
-version: "3.7"
-
 services:
   # Umbrel's app proxy - routes traffic to our app
   app_proxy:
-    image: getumbrel/app-proxy:v1.0.0
-    restart: on-failure
     environment:
       # Format: <app-id>_<service-name>_1
       # internal service name 'web' resolves correctly in Docker network
@@ -42,7 +38,6 @@ services:
 
       # Timezone - users can modify in their Umbrel settings
       TZ: "${TZ:-America/Toronto}"
-
     # No volumes needed - GhostLedger is stateless by design
     # All data is processed in-memory and exported as downloads
     # This aligns with the privacy-first philosophy
@@ -51,30 +46,4 @@ services:
     # volumes:
     #   - ${APP_DATA_DIR}/data:/app/data
 
-    # Security hardening
-    # Read-only root filesystem with tmpfs for Streamlit's cache
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /home/ghostledger/.streamlit
 
-    # Resource limits appropriate for Raspberry Pi
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-
-    # Network access for external API calls (price data)
-    networks:
-      default:
-      internet:
-
-
-networks:
-  internet:
-    name: umbrel_internet
-    external: true
