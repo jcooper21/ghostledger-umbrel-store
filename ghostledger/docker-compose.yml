@@ -13,7 +13,7 @@ services:
     environment:
       # Format: <app-id>_<service-name>_1
       # internal service name 'web' resolves correctly in Docker network
-      APP_HOST: web
+      APP_HOST: ghostledger-web-1
       APP_PORT: 8501
 
   # Main GhostLedger application
