@@ -1,0 +1,16 @@
+# GhostLedger Umbrel Community App Store
+# =======================================
+# This file defines the Community App Store for Umbrel.
+# Users can add this store to their Umbrel to install GhostLedger.
+#
+# To add this store to Umbrel:
+# 1. Go to Umbrel > App Store > Settings (gear icon)
+# 2. Click "Community App Stores"
+# 3. Add the GitHub URL of this repository
+#
+# The 'id' must be a unique prefix. All apps in this store
+# must have IDs starting with this prefix (e.g., ghostledger-app).
+# However, for a single-app store, we can use just the app name.
+
+id: ghostledger
+name: GhostLedger App Store

@@ -1,0 +1,41 @@
+manifestVersion: 1
+id: ghostledger
+category: finance
+name: GhostLedger
+version: "1.0.0"
+tagline: Local-first Bitcoin tax calculator for Canada
+description: >-
+  GhostLedger is a privacy-focused Bitcoin tax calculator built specifically 
+  for Canadian taxpayers. It implements the CRA-required Adjusted Cost Base (ACB) 
+  method - the weighted average cost approach that Canadian tax law mandates for 
+  capital property.
+
+
+  All processing happens 100% locally on your Umbrel. Your transaction data, 
+  wallet exports, and financial information never leave your device. No APIs, 
+  no cloud, no data exfiltration.
+
+
+  Features include import from Sparrow Wallet CSV exports, automatic ACB 
+  calculation with full audit trail, capital gains and loss tracking, 
+  superficial loss rule detection (30-day wash sale warnings), and 
+  CRA Schedule 3 formatted export for tax filing.
+
+
+  Upload your historical BTC/CAD prices (from Yahoo Finance or CoinGecko) 
+  alongside your Sparrow transaction export, and GhostLedger handles the rest. 
+  Perfect for Bitcoiners who value privacy and self-sovereignty in their 
+  financial record keeping.
+releaseNotes: ""
+developer: GhostLedger
+website: https://github.com/ghostledger/ghostledger
+dependencies: []
+repo: https://github.com/ghostledger/ghostledger
+support: https://github.com/ghostledger/ghostledger/issues
+port: 8501
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: Community
+submission: ""

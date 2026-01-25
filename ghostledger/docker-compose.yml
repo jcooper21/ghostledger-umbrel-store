@@ -1,0 +1,66 @@
+# GhostLedger Docker Compose for Umbrel
+# ======================================
+# This file integrates with Umbrel's app proxy system for seamless access.
+#
+# Key Umbrel integration points:
+# - app_proxy: Umbrel's reverse proxy handles routing to the app
+# - APP_DATA_DIR: Persistent storage location provided by Umbrel
+# - Network isolation: App runs in Umbrel's Docker network
+
+version: "3.7"
+
+services:
+  # Umbrel's app proxy - routes traffic to our app
+  app_proxy:
+    environment:
+      # Format: <app-id>_<service-name>_1
+      APP_HOST: ghostledger_web_1
+      APP_PORT: 8501
+  
+  # Main GhostLedger application
+  web:
+    image: ghostledger/ghostledger:v1.0.0
+    # For local builds during development, comment out 'image' and use:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    restart: on-failure
+    stop_grace_period: 30s
+    
+    # Environment configuration
+    environment:
+      # Streamlit configuration for Umbrel environment
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+      STREAMLIT_SERVER_ADDRESS: "0.0.0.0"
+      STREAMLIT_SERVER_PORT: "8501"
+      STREAMLIT_SERVER_ENABLE_CORS: "false"
+      STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: "false"
+      
+      # Timezone - users can modify in their Umbrel settings
+      TZ: "${TZ:-America/Toronto}"
+    
+    # No volumes needed - GhostLedger is stateless by design
+    # All data is processed in-memory and exported as downloads
+    # This aligns with the privacy-first philosophy
+    #
+    # If persistent session data is desired in future versions:
+    # volumes:
+    #   - ${APP_DATA_DIR}/data:/app/data
+
+    # Security hardening
+    # Read-only root filesystem with tmpfs for Streamlit's cache
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/ghostledger/.streamlit
+    
+    # Resource limits appropriate for Raspberry Pi
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M

@@ -1,0 +1,19 @@
+# GhostLedger Python Dependencies
+# ================================
+#
+# WHY these specific packages?
+# ----------------------------
+# streamlit: UI framework - fast data app development
+# pandas: DataFrame operations - efficient transaction processing
+#
+# WHY no version pins?
+# --------------------
+# For MVP simplicity. Production deployment should pin versions:
+#   streamlit==1.31.0
+#   pandas==2.2.0
+#
+# To generate pinned versions:
+#   pip freeze > requirements.lock
+
+streamlit>=1.28.0
+pandas>=2.0.0
