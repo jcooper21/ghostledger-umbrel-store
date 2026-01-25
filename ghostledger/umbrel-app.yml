@@ -2,7 +2,7 @@ manifestVersion: 1
 id: ghostledger
 category: finance
 name: GhostLedger
-version: "1.1.1"
+version: "1.1.2"
 tagline: Local-first Bitcoin tax calculator for Canada
 description: >-
   GhostLedger is a privacy-focused Bitcoin tax calculator built specifically 
