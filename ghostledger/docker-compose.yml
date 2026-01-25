@@ -18,11 +18,9 @@ services:
 
   # Main GhostLedger application
   web:
-    # BUILD LOCALLY: Bypasses failing GitHub Actions
-    build:
-      context: .
-    image: ghostledger-local:v1.3.0
-    # image: jcooper21/ghostledger:v1.2.9
+    image: jcooper21/ghostledger:v1.3.1
+    # build:
+    #   context: .
     restart: on-failure
     stop_grace_period: 30s
     ports:
