@@ -19,7 +19,7 @@ services:
 
   # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.2.0@sha256:266916ada10bb5c30551c5b8debaed1cf5130993286c3cf940ef42b39a1d6020
+    image: jcooper21/ghostledger:v1.2.1@sha256:8362f35b9cd2d6402335750c5920d5c37d2eb4017ff52420575b2213247818a3
     # For local builds during development, comment out 'image' and use:
     # build:
     #   context: .
