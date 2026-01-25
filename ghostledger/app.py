@@ -54,6 +54,15 @@ def init_session_state():
         st.session_state.price_provider = HistoricalPriceProvider()
     if 'prices_loaded' not in st.session_state:
         st.session_state.prices_loaded = False
+        # Auto-fetch on startup
+        with st.spinner("👻 GhostLedger is fetching latest Bitcoin prices..."):
+            success, msg = st.session_state.price_provider.fetch_from_coingecko()
+            if success:
+                st.session_state.prices_loaded = True
+                st.toast(f"✅ {msg}")
+            else:
+                st.toast(f"⚠️ Could not auto-fetch prices: {msg}")
+
     if 'selected_year' not in st.session_state:
         st.session_state.selected_year = datetime.now().year
 
@@ -78,36 +87,28 @@ def render_sidebar():
         # Step 1: Price Data
         st.subheader("1️⃣ Historical Prices")
         st.caption(
-            "Upload BTC/CAD daily prices from Yahoo Finance or similar. "
-            "Format: CSV with Date and Close/Price columns."
+            "Prices are fetched automatically from CoinGecko. "
+            "You can also upload your own CSV below."
         )
-
-        # Auto-fetch button
-        if st.button("🔄 Auto-Fetch Prices (CoinGecko)", help="Fetch daily BTC-CAD history from public API"):
-            with st.spinner("Fetching data from CoinGecko..."):
-                success, message = st.session_state.price_provider.fetch_from_coingecko()
+        
+        if st.session_state.prices_loaded:
+             st.success("✅ Price history loaded")
+        
+        with st.expander("Upload Manual CSV"):
+            price_file = st.file_uploader(
+                "Upload Price CSV",
+                type=['csv'],
+                key='price_uploader',
+                help="Download daily BTC-CAD.csv from Yahoo Finance"
+            )
+            
+            if price_file:
+                success, message = st.session_state.price_provider.load_price_csv(price_file)
                 if success:
                     st.success(f"✅ {message}")
                     st.session_state.prices_loaded = True
                 else:
                     st.error(f"❌ {message}")
-        
-        st.markdown("**OR** upload CSV manually:")
-        
-        price_file = st.file_uploader(
-            "Upload Price CSV",
-            type=['csv'],
-            key='price_uploader',
-            help="Download daily BTC-CAD.csv from Yahoo Finance"
-        )
-        
-        if price_file:
-            success, message = st.session_state.price_provider.load_price_csv(price_file)
-            if success:
-                st.success(f"✅ {message}")
-                st.session_state.prices_loaded = True
-            else:
-                st.error(f"❌ {message}")
         
         # Show sample download
         with st.expander("📥 Need sample price data?"):
