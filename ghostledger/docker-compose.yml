@@ -19,7 +19,7 @@ services:
   
   # Main GhostLedger application
   web:
-    image: YOUR_DOCKERHUB/ghostledger:v1.0.0
+    image: jcooper21/ghostledger:v1.0.0@sha256:fa520a27a6ef1274ae4ea17a1b3825bf7936b86c119b6c5eb7bc4442c2905218
     # For local builds during development, comment out 'image' and use:
     # build:
     #   context: .
