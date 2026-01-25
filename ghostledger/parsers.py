@@ -463,52 +463,75 @@ class HistoricalPriceProvider:
 
     def fetch_from_coingecko(self) -> Tuple[bool, str]:
         """
-        Fetch historical BTC/CAD prices from CoinGecko API.
+        Fetch historical BTC/CAD prices using CoinCap API (free, no auth).
         
-        Endpoint: /coins/bitcoin/market_chart
+        Strategy:
+        1. Fetch BTC/USD from CoinCap (free API, no auth)
+        2. Use a fixed approximate USD/CAD rate of 1.35 for historical data
         
         Returns:
             Tuple of (success, message)
         """
         try:
-            url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+            # CoinCap provides BTC/USD historical data for free
+            # Get last 2000 days of daily data
+            end_time = int(time.time() * 1000)
+            start_time = end_time - (2000 * 24 * 60 * 60 * 1000)  # ~5.5 years back
+            
+            url = "https://api.coincap.io/v2/assets/bitcoin/history"
             params = {
-                'vs_currency': 'cad',
-                'days': 'max',
-                'interval': 'daily'
+                'interval': 'd1',
+                'start': start_time,
+                'end': end_time
             }
             
-            response = requests.get(url, params=params, timeout=10)
+            headers = {
+                'Accept': 'application/json',
+                'Accept-Encoding': 'gzip'
+            }
+            
+            response = requests.get(url, params=params, headers=headers, timeout=15)
             
             if response.status_code != 200:
-                return False, f"API Error: {response.status_code} - {response.reason}"
-                
+                return False, f"API Error: {response.status_code} - {response.text[:100]}"
+            
             data = response.json()
             
-            if 'prices' not in data:
-                return False, "Invalid API response format"
+            if 'data' not in data or not data['data']:
+                return False, "No price data in API response"
             
-            # Process prices
-            # Format: [timestamp_ms, price]
+            # Approximate USD/CAD rate (historical average)
+            # This is close enough for tax estimation purposes
+            usd_cad_rate = Decimal('1.35')
+            
             loaded_count = 0
-            for item in data['prices']:
-                ts_ms = item[0]
-                price_val = item[1]
-                
-                # Convert ms timestamp to date string
-                dt = datetime.fromtimestamp(ts_ms / 1000)
-                date_str = dt.strftime('%Y-%m-%d')
-                
-                self.prices[date_str] = Decimal(str(price_val))
-                loaded_count += 1
+            for item in data['data']:
+                try:
+                    ts_ms = item.get('time')
+                    price_usd = item.get('priceUsd')
+                    
+                    if ts_ms and price_usd:
+                        dt = datetime.fromtimestamp(ts_ms / 1000)
+                        date_str = dt.strftime('%Y-%m-%d')
+                        
+                        # Convert USD to CAD
+                        price_cad = Decimal(str(price_usd)) * usd_cad_rate
+                        self.prices[date_str] = price_cad
+                        loaded_count += 1
+                except (ValueError, TypeError):
+                    continue
             
             if loaded_count > 0:
-                return True, f"Successfully fetched {loaded_count} daily prices!"
+                return True, f"Loaded {loaded_count} daily prices (USD×1.35 to CAD)"
             else:
-                return False, "No price data found in response"
+                return False, "No valid price data found"
                 
+        except requests.exceptions.Timeout:
+            return False, "Request timed out - try again"
+        except requests.exceptions.ConnectionError:
+            return False, "Network connection failed"
         except Exception as e:
-            return False, f"Connection Failed: {str(e)}"
+            return False, f"Error: {str(e)}"
 
 
 def add_prices_to_transactions(
