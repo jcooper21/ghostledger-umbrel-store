@@ -79,7 +79,7 @@ def parse_sparrow_csv(file_buffer: BinaryIO) -> Tuple[List[Transaction], List[st
         
         # Map common column name variations
         column_map = {
-            'date': ['date', 'datetime', 'timestamp', 'time'],
+            'date': ['date', 'datetime', 'timestamp', 'time', 'date (utc)'],
             'label': ['label', 'memo', 'note', 'description'],
             'value': ['value', 'amount', 'btc', 'sats'],
             'balance': ['balance', 'running_balance', 'total'],

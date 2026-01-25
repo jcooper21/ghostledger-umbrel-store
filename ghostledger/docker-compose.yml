@@ -16,17 +16,17 @@ services:
       # Format: <app-id>_<service-name>_1
       APP_HOST: ghostledger_web_1
       APP_PORT: 8501
-  
+
   # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.0.0@sha256:fa520a27a6ef1274ae4ea17a1b3825bf7936b86c119b6c5eb7bc4442c2905218
+    image: jcooper21/ghostledger:v1.0.1@sha256:0e82d5ff71780a631d55d1cb6bfae6e6f9af987505b24d80f0b444b148df7d74
     # For local builds during development, comment out 'image' and use:
     # build:
     #   context: .
     #   dockerfile: Dockerfile
     restart: on-failure
     stop_grace_period: 30s
-    
+
     # Environment configuration
     environment:
       # Streamlit configuration for Umbrel environment
@@ -36,10 +36,10 @@ services:
       STREAMLIT_SERVER_PORT: "8501"
       STREAMLIT_SERVER_ENABLE_CORS: "false"
       STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: "false"
-      
+
       # Timezone - users can modify in their Umbrel settings
       TZ: "${TZ:-America/Toronto}"
-    
+
     # No volumes needed - GhostLedger is stateless by design
     # All data is processed in-memory and exported as downloads
     # This aligns with the privacy-first philosophy
@@ -54,7 +54,7 @@ services:
     tmpfs:
       - /tmp
       - /home/ghostledger/.streamlit
-    
+
     # Resource limits appropriate for Raspberry Pi
     deploy:
       resources:
