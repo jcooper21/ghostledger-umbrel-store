@@ -52,19 +52,40 @@ def init_session_state():
         st.session_state.summary = None
     if 'price_provider' not in st.session_state:
         st.session_state.price_provider = HistoricalPriceProvider()
-    if 'prices_loaded' not in st.session_state:
-        st.session_state.prices_loaded = False
-        # Auto-fetch on startup
-        with st.spinner("👻 GhostLedger is fetching latest Bitcoin prices..."):
+    if 'price_fetch_attempted' not in st.session_state:
+        st.session_state.price_fetch_attempted = False
+    
+    # Auto-fetch on startup if not yet attempted
+    if not st.session_state.prices_loaded and not st.session_state.price_fetch_attempted:
+        fetch_prices()
+
+
+    if 'selected_year' not in st.session_state:
+        st.session_state.selected_year = datetime.now().year
+
+
+def fetch_prices():
+    """Attempt to fetch prices with retry logic."""
+    import time
+    
+    st.session_state.price_fetch_attempted = True
+    
+    with st.spinner("👻 GhostLedger is fetching latest Bitcoin prices..."):
+        # Simple retry logic
+        max_retries = 3
+        for i in range(max_retries):
             success, msg = st.session_state.price_provider.fetch_from_coingecko()
             if success:
                 st.session_state.prices_loaded = True
                 st.toast(f"✅ {msg}")
-            else:
-                st.toast(f"⚠️ Could not auto-fetch prices: {msg}")
-
-    if 'selected_year' not in st.session_state:
-        st.session_state.selected_year = datetime.now().year
+                return
+            
+            # If failed, wait briefly before retry (unless it's the last attempt)
+            if i < max_retries - 1:
+                time.sleep(2)
+        
+        # If we get here, all retries failed
+        st.toast(f"⚠️ Could not auto-fetch prices: {msg}")
 
 
 def render_sidebar():
@@ -93,6 +114,15 @@ def render_sidebar():
         
         if st.session_state.prices_loaded:
              st.success("✅ Price history loaded")
+        else:
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.warning("⚠️ No prices loaded")
+            with col2:
+                if st.button("Retry"):
+                    fetch_prices()
+                    st.rerun()
+
         
         with st.expander("Upload Manual CSV"):
             price_file = st.file_uploader(

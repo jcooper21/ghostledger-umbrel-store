@@ -6,5 +6,6 @@
 # but this file is required for Umbrel app structure.
 
 # Export the app's web interface URL (internal Docker network)
-export APP_GHOSTLEDGER_HOST="ghostledger_web_1"
+# Umbrel 1.0+ uses hyphens for container names
+export APP_GHOSTLEDGER_HOST="ghostledger-web-1"
 export APP_GHOSTLEDGER_PORT="8501"

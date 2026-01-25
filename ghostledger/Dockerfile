@@ -38,7 +38,7 @@ FROM python:3.9-slim
 # OCI Labels for Umbrel app store
 LABEL org.opencontainers.image.title="GhostLedger"
 LABEL org.opencontainers.image.description="Local-first Bitcoin tax calculator for Canada"
-LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.version="1.2.5"
 LABEL org.opencontainers.image.source="https://github.com/ghostledger/ghostledger"
 LABEL org.opencontainers.image.licenses="MIT"
 

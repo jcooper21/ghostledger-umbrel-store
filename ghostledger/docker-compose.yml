@@ -12,14 +12,17 @@ version: "3.7"
 services:
   # Umbrel's app proxy - routes traffic to our app
   app_proxy:
+    image: getumbrel/app-proxy:v1.0.0
+    restart: on-failure
     environment:
       # Format: <app-id>_<service-name>_1
-      APP_HOST: ghostledger_web_1
+      # internal service name 'web' resolves correctly in Docker network
+      APP_HOST: web
       APP_PORT: 8501
 
   # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.2.3@sha256:3f985ea3f5f67417f0098d85652f29931b8234fc2ecabc9359085f202a5980e6
+    image: jcooper21/ghostledger:v1.2.5
     # For local builds during development, comment out 'image' and use:
     # build:
     #   context: .
