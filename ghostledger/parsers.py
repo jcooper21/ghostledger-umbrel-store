@@ -28,6 +28,8 @@ from datetime import datetime
 from typing import List, Optional, Tuple, BinaryIO
 from io import StringIO
 import re
+import requests
+import time
 
 from acb_engine import Transaction
 
@@ -458,6 +460,55 @@ class HistoricalPriceProvider:
         
         # 4. Last resort - return 0 with error
         return Decimal('0'), 'NO_PRICE_DATA'
+
+    def fetch_from_coingecko(self) -> Tuple[bool, str]:
+        """
+        Fetch historical BTC/CAD prices from CoinGecko API.
+        
+        Endpoint: /coins/bitcoin/market_chart
+        
+        Returns:
+            Tuple of (success, message)
+        """
+        try:
+            url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+            params = {
+                'vs_currency': 'cad',
+                'days': 'max',
+                'interval': 'daily'
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            
+            if response.status_code != 200:
+                return False, f"API Error: {response.status_code} - {response.reason}"
+                
+            data = response.json()
+            
+            if 'prices' not in data:
+                return False, "Invalid API response format"
+            
+            # Process prices
+            # Format: [timestamp_ms, price]
+            loaded_count = 0
+            for item in data['prices']:
+                ts_ms = item[0]
+                price_val = item[1]
+                
+                # Convert ms timestamp to date string
+                dt = datetime.fromtimestamp(ts_ms / 1000)
+                date_str = dt.strftime('%Y-%m-%d')
+                
+                self.prices[date_str] = Decimal(str(price_val))
+                loaded_count += 1
+            
+            if loaded_count > 0:
+                return True, f"Successfully fetched {loaded_count} daily prices!"
+            else:
+                return False, "No price data found in response"
+                
+        except Exception as e:
+            return False, f"Connection Failed: {str(e)}"
 
 
 def add_prices_to_transactions(

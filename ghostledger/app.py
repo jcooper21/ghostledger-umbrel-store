@@ -81,6 +81,18 @@ def render_sidebar():
             "Upload BTC/CAD daily prices from Yahoo Finance or similar. "
             "Format: CSV with Date and Close/Price columns."
         )
+
+        # Auto-fetch button
+        if st.button("🔄 Auto-Fetch Prices (CoinGecko)", help="Fetch daily BTC-CAD history from public API"):
+            with st.spinner("Fetching data from CoinGecko..."):
+                success, message = st.session_state.price_provider.fetch_from_coingecko()
+                if success:
+                    st.success(f"✅ {message}")
+                    st.session_state.prices_loaded = True
+                else:
+                    st.error(f"❌ {message}")
+        
+        st.markdown("**OR** upload CSV manually:")
         
         price_file = st.file_uploader(
             "Upload Price CSV",
