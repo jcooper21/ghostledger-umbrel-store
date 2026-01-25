@@ -13,50 +13,43 @@
 # - Deterministic builds with pinned versions
 
 # =============================================================================
-# Stage 1: Builder - Install dependencies
-# =============================================================================
-FROM python:3.11-slim AS builder
+# Stage 1: Builder
+FROM python:3.11-bookworm AS builder
 
-# Install build dependencies
+# Install specific system dependencies often needed by Pandas/Streamlit
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
+    build-essential \
+    libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment for clean dependency isolation
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# =============================================================================
-# Stage 2: Runtime - Minimal production image
-# =============================================================================
-FROM python:3.11-slim
+# Stage 2: Runtime
+FROM python:3.11-bookworm
 
-# OCI Labels for Umbrel app store
+# Metadata
 LABEL org.opencontainers.image.title="GhostLedger"
-LABEL org.opencontainers.image.description="Local-first Bitcoin tax calculator for Canada"
-LABEL org.opencontainers.image.version="1.2.5"
-LABEL org.opencontainers.image.source="https://github.com/ghostledger/ghostledger"
-LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.version="1.2.8"
 
-# Environment configuration
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
+# Fix locale (prevent crash on emoji)
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Create non-root user (UID 1000 matches Umbrel convention)
-RUN useradd --uid 1000 --create-home --shell /bin/bash ghostledger
+# Runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libopenblas-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set up application directory
+RUN useradd --uid 1000 --create-home --shell /bin/bash ghostledger
 WORKDIR /app
 
-# Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
-
-# Copy application code
 COPY --chown=ghostledger:ghostledger . ./
 
 # Switch to non-root user
@@ -66,8 +59,8 @@ USER ghostledger
 EXPOSE 8501
 
 # Health check for Umbrel's monitoring
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')" || exit 1
+# Healthcheck removed for stability on slow devices
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 ...
 
 # Start Streamlit with Umbrel-compatible settings
 ENTRYPOINT ["streamlit", "run", "app.py", \

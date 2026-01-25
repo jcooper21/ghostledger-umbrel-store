@@ -39,5 +39,6 @@ jobs:
           # they use their username here or we inject it similarly.
           # Typically, tags are `username/repo:tag`.
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/ghostledger:v1.2.7
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ghostledger:v1.2.8
             ${{ secrets.DOCKER_USERNAME }}/ghostledger:latest
