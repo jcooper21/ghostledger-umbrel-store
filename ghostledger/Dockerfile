@@ -15,7 +15,7 @@
 # =============================================================================
 # Stage 1: Builder - Install dependencies
 # =============================================================================
-FROM python:3.9-slim AS builder
+FROM python:3.11-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
 # =============================================================================
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # OCI Labels for Umbrel app store
 LABEL org.opencontainers.image.title="GhostLedger"

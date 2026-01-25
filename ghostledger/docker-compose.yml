@@ -18,7 +18,7 @@ services:
 
   # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.2.6
+    image: jcooper21/ghostledger:v1.2.7
     # build:
     #   context: .
     #   dockerfile: Dockerfile
