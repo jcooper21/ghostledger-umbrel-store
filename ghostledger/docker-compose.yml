@@ -1,49 +1,20 @@
-# GhostLedger Docker Compose for Umbrel
-# ======================================
-# This file integrates with Umbrel's app proxy system for seamless access.
-#
-# Key Umbrel integration points:
-# - app_proxy: Umbrel's reverse proxy handles routing to the app
-# - APP_DATA_DIR: Persistent storage location provided by Umbrel
-# - Network isolation: App runs in Umbrel's Docker network
+version: "3.7"
 
 services:
-  # Umbrel's app proxy - routes traffic to our app
   app_proxy:
     environment:
-      # Format: <app-id>_<service-name>_1
-      # internal service name 'web' resolves correctly in Docker network
-      APP_HOST: web
+      APP_HOST: ghostledger_web_1
       APP_PORT: 8501
 
-  # Main GhostLedger application
   web:
-    image: jcooper21/ghostledger:v1.3.1
-    # build:
-    #   context: .
+    image: jcooper21/ghostledger:v1.3.1@sha256:f260391a0476d359e3bfff68b08072bab012fc0e7138fddb013623ca8e406fdc
     restart: on-failure
     stop_grace_period: 30s
-    ports:
-      - 8502:8501
-
-    # Environment configuration
     environment:
-      # Streamlit configuration for Umbrel environment
       STREAMLIT_SERVER_HEADLESS: "true"
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
       STREAMLIT_SERVER_ADDRESS: "0.0.0.0"
       STREAMLIT_SERVER_PORT: "8501"
       STREAMLIT_SERVER_ENABLE_CORS: "false"
       STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: "false"
-
-      # Timezone - users can modify in their Umbrel settings
       TZ: "${TZ:-America/Toronto}"
-    # No volumes needed - GhostLedger is stateless by design
-    # All data is processed in-memory and exported as downloads
-    # This aligns with the privacy-first philosophy
-    #
-    # If persistent session data is desired in future versions:
-    # volumes:
-    #   - ${APP_DATA_DIR}/data:/app/data
-
-
