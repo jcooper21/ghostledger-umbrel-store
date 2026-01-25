@@ -18,11 +18,9 @@ services:
 
   # Main GhostLedger application
   web:
-    # Use local build to ensure latest code and bypass Docker Hub issues
-    build:
-      context: .
-    image: ghostledger-local:v1.2.6
-    # image: jcooper21/ghostledger:v1.2.6
+    image: jcooper21/ghostledger:v1.2.6
+    # build:
+    #   context: .
     #   dockerfile: Dockerfile
     restart: on-failure
     stop_grace_period: 30s
