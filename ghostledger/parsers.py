@@ -463,73 +463,67 @@ class HistoricalPriceProvider:
 
     def fetch_from_coingecko(self) -> Tuple[bool, str]:
         """
-        Fetch historical BTC/CAD prices using CoinCap API (free, no auth).
+        Fetch historical BTC/CAD prices using CoinGecko API (free, no auth required).
         
         Strategy:
-        1. Fetch BTC/USD from CoinCap (free API, no auth)
-        2. Use a fixed approximate USD/CAD rate of 1.35 for historical data
+        1. Fetch 365 days of historical data from CoinGecko (free tier limit)
+        2. CoinGecko provides direct BTC/CAD prices, no conversion needed
+        3. For older transactions, fallback monthly averages are used
         
         Returns:
             Tuple of (success, message)
         """
         try:
-            # CoinCap provides BTC/USD historical data for free
-            # Get last 2000 days of daily data
-            end_time = int(time.time() * 1000)
-            start_time = end_time - (2000 * 24 * 60 * 60 * 1000)  # ~5.5 years back
-            
-            url = "https://api.coincap.io/v2/assets/bitcoin/history"
+            # CoinGecko free API - limited to 365 days of historical data
+            url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
             params = {
-                'interval': 'd1',
-                'start': start_time,
-                'end': end_time
+                'vs_currency': 'cad',
+                'days': 365,  # Free tier limit is 365 days
+                'interval': 'daily'
             }
             
             headers = {
-                'Accept': 'application/json',
-                'Accept-Encoding': 'gzip'
+                'Accept': 'application/json'
             }
             
-            response = requests.get(url, params=params, headers=headers, timeout=15)
+            response = requests.get(url, params=params, headers=headers, timeout=30)
+            
+            if response.status_code == 429:
+                return False, "Rate limited - please wait a moment and retry"
             
             if response.status_code != 200:
                 return False, f"API Error: {response.status_code} - {response.text[:100]}"
             
             data = response.json()
             
-            if 'data' not in data or not data['data']:
+            if 'prices' not in data or not data['prices']:
                 return False, "No price data in API response"
             
-            # Approximate USD/CAD rate (historical average)
-            # This is close enough for tax estimation purposes
-            usd_cad_rate = Decimal('1.35')
-            
             loaded_count = 0
-            for item in data['data']:
+            for item in data['prices']:
                 try:
-                    ts_ms = item.get('time')
-                    price_usd = item.get('priceUsd')
+                    # CoinGecko returns [timestamp_ms, price]
+                    ts_ms = item[0]
+                    price_cad = item[1]
                     
-                    if ts_ms and price_usd:
+                    if ts_ms and price_cad:
                         dt = datetime.fromtimestamp(ts_ms / 1000)
                         date_str = dt.strftime('%Y-%m-%d')
                         
-                        # Convert USD to CAD
-                        price_cad = Decimal(str(price_usd)) * usd_cad_rate
-                        self.prices[date_str] = price_cad
+                        self.prices[date_str] = Decimal(str(price_cad))
                         loaded_count += 1
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, IndexError):
                     continue
             
             if loaded_count > 0:
-                return True, f"Loaded {loaded_count} daily prices (USD×1.35 to CAD)"
+                return True, f"Loaded {loaded_count} daily BTC/CAD prices from CoinGecko"
             else:
                 return False, "No valid price data found"
                 
         except requests.exceptions.Timeout:
             return False, "Request timed out - try again"
         except requests.exceptions.ConnectionError:
-            return False, "Network connection failed"
+            return False, "Network connection failed - check internet"
         except Exception as e:
             return False, f"Error: {str(e)}"
 

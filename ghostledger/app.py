@@ -52,13 +52,14 @@ def init_session_state():
         st.session_state.summary = None
     if 'price_provider' not in st.session_state:
         st.session_state.price_provider = HistoricalPriceProvider()
+    if 'prices_loaded' not in st.session_state:
+        st.session_state.prices_loaded = False
     if 'price_fetch_attempted' not in st.session_state:
         st.session_state.price_fetch_attempted = False
     
     # Auto-fetch on startup if not yet attempted
     if not st.session_state.prices_loaded and not st.session_state.price_fetch_attempted:
         fetch_prices()
-
 
     if 'selected_year' not in st.session_state:
         st.session_state.selected_year = datetime.now().year

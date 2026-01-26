@@ -7,7 +7,7 @@ services:
       APP_PORT: 8501
 
   web:
-    image: jcooper21/ghostledger:v1.3.1@sha256:f260391a0476d359e3bfff68b08072bab012fc0e7138fddb013623ca8e406fdc
+    image: jcooper21/ghostledger:v1.3.2@sha256:5fab16a773a26297ca37c085f40db1381bd89179bdc913357a34f81f7c17ecbb
     restart: on-failure
     stop_grace_period: 30s
     environment:
