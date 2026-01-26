@@ -56,13 +56,14 @@ def init_session_state():
         st.session_state.prices_loaded = False
     if 'price_fetch_attempted' not in st.session_state:
         st.session_state.price_fetch_attempted = False
-    
-    # Auto-fetch on startup if not yet attempted
-    if not st.session_state.prices_loaded and not st.session_state.price_fetch_attempted:
-        fetch_prices()
-
     if 'selected_year' not in st.session_state:
         st.session_state.selected_year = datetime.now().year
+    
+    # Auto-fetch on startup if not yet attempted
+    # Use 'in' check to be extra safe with session state
+    if (st.session_state.get('prices_loaded', False) == False and 
+        st.session_state.get('price_fetch_attempted', False) == False):
+        fetch_prices()
 
 
 def fetch_prices():
@@ -113,8 +114,8 @@ def render_sidebar():
             "You can also upload your own CSV below."
         )
         
-        if st.session_state.prices_loaded:
-             st.success("✅ Price history loaded")
+        if st.session_state.get('prices_loaded', False):
+            st.success("✅ Price history loaded")
         else:
             col1, col2 = st.columns([2, 1])
             with col1:
@@ -301,7 +302,7 @@ def render_metrics():
 
 def render_ledger_table():
     """Render the detailed transaction ledger."""
-    ledger = st.session_state.ledger
+    ledger = st.session_state.get('ledger', [])
     
     if not ledger:
         return
@@ -326,7 +327,7 @@ def render_ledger_table():
     if not show_all:
         filtered_ledger = [
             e for e in filtered_ledger 
-            if e.date.year == st.session_state.selected_year
+            if e.date.year == st.session_state.get('selected_year', datetime.now().year)
         ]
     
     if show_only_dispositions:
@@ -402,7 +403,7 @@ def render_ledger_table():
 
 def render_export_section():
     """Render the export options."""
-    if not st.session_state.ledger:
+    if not st.session_state.get('ledger', []):
         return
     
     st.subheader("📤 Export for Tax Filing")
@@ -414,9 +415,10 @@ def render_export_section():
         st.markdown("**CRA Schedule 3 Format**")
         st.caption("Formatted for Canadian tax return Schedule 3")
         
-        if 'calculator' in st.session_state:
-            schedule_df = st.session_state.calculator.export_for_schedule_3(
-                st.session_state.selected_year
+        calculator = st.session_state.get('calculator')
+        if calculator:
+            schedule_df = calculator.export_for_schedule_3(
+                st.session_state.get('selected_year', datetime.now().year)
             )
             
             if not schedule_df.empty:
@@ -427,7 +429,7 @@ def render_export_section():
                 st.download_button(
                     "📥 Download Schedule 3 CSV",
                     data=csv_buffer.getvalue(),
-                    file_name=f"ghostledger_schedule3_{st.session_state.selected_year}.csv",
+                    file_name=f"ghostledger_schedule3_{st.session_state.get('selected_year', datetime.now().year)}.csv",
                     mime="text/csv"
                 )
             else:
@@ -439,7 +441,7 @@ def render_export_section():
         st.caption("Complete ledger with all ACB calculations")
         
         ledger_rows = []
-        for entry in st.session_state.ledger:
+        for entry in st.session_state.get('ledger', []):
             ledger_rows.append({
                 'Date': entry.date.strftime('%Y-%m-%d %H:%M:%S'),
                 'Type': entry.tx_type,
@@ -465,7 +467,7 @@ def render_export_section():
         st.download_button(
             "📥 Download Full Ledger CSV",
             data=csv_buffer.getvalue(),
-            file_name=f"ghostledger_full_ledger_{st.session_state.selected_year}.csv",
+            file_name=f"ghostledger_full_ledger_{st.session_state.get('selected_year', datetime.now().year)}.csv",
             mime="text/csv"
         )
     
@@ -474,11 +476,12 @@ def render_export_section():
         st.markdown("**Tax Summary**")
         st.caption("Quick summary for your records")
         
-        if st.session_state.summary:
-            summary = st.session_state.summary
+        summary = st.session_state.get('summary')
+        if summary:
+            selected_year = st.session_state.get('selected_year', datetime.now().year)
             summary_text = f"""GhostLedger Tax Summary
 =======================
-Tax Year: {st.session_state.selected_year}
+Tax Year: {selected_year}
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 
 CAPITAL GAINS SUMMARY
@@ -507,7 +510,7 @@ GhostLedger is not responsible for any errors in tax filings.
             st.download_button(
                 "📥 Download Summary TXT",
                 data=summary_text,
-                file_name=f"ghostledger_summary_{st.session_state.selected_year}.txt",
+                file_name=f"ghostledger_summary_{selected_year}.txt",
                 mime="text/plain"
             )
 
@@ -563,7 +566,7 @@ def render_acb_explainer():
 def render_main_content():
     """Render the main content area."""
     st.title("👻 GhostLedger")
-    st.caption(f"Bitcoin Tax Calculator for Canada | Tax Year: {st.session_state.selected_year}")
+    st.caption(f"Bitcoin Tax Calculator for Canada | Tax Year: {st.session_state.get('selected_year', datetime.now().year)}")
     
     render_metrics()
     
