@@ -32,13 +32,6 @@ jobs:
           context: ./ghostledger
           platforms: linux/amd64,linux/arm64
           push: true
-          # Replace YOUR_DOCKERHUB with the actual username if hardcoded, 
-          # otherwise it relies on the user updating docker-compose.yml 
-          # or we can use the secret username.
-          # For consistency with the user's manual update, we'll suggest 
-          # they use their username here or we inject it similarly.
-          # Typically, tags are `username/repo:tag`.
           tags: |
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/ghostledger:v1.3.1
+            ${{ secrets.DOCKER_USERNAME }}/ghostledger:v1.3.2
             ${{ secrets.DOCKER_USERNAME }}/ghostledger:latest
