@@ -1,8 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="40" fill="#1a1a1a"/>
-  <path d="M128 40c-40 0-72 28-72 72v80c0 8 8 16 16 16h16c8 0-4-16-4-24s12-16 20-16 20 8 20 16-12 24-4 24h8c8 0-4-16-4-24s12-16 20-16 20 8 20 16-12 24-4 24h16c8 0 16-8 16-16v-80c0-44-32-72-72-72z" fill="white"/>
-  <circle cx="100" cy="100" r="12" fill="#1a1a1a"/>
-  <circle cx="156" cy="100" r="12" fill="#1a1a1a"/>
-  <path d="M108 124c0 0 10 14 20 14s20-14 20-14" stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
-  <text x="128" y="175" font-family="Arial Black" font-size="40" fill="#f7931a" text-anchor="middle" font-weight="bold">₿</text>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d2d2d"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="256" height="256" fill="url(#grad)"/>
+  <!-- Ghost body -->
+  <path d="M128 35c-45 0-80 32-80 80v90c0 6 5 11 11 11h12c6 0 6-10 6-16 0-10 14-18 24-18s24 8 24 18c0 6 0 16 6 16h6c6 0 6-10 6-16 0-10 14-18 24-18s24 8 24 18c0 6 0 16 6 16h12c6 0 11-5 11-11v-90c0-48-35-80-80-80z" fill="#ffffff"/>
+  <!-- Left eye -->
+  <circle cx="100" cy="105" r="14" fill="#1a1a1a"/>
+  <!-- Right eye -->
+  <circle cx="156" cy="105" r="14" fill="#1a1a1a"/>
+  <!-- Smile -->
+  <path d="M105 130 Q128 155 151 130" stroke="#1a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Bitcoin symbol (as path, not text) -->
+  <path d="M119 165 L119 185 M137 165 L137 185 M115 170 L141 170 C147 170 151 173 151 177.5 C151 182 147 185 141 185 L115 185 L115 170 M115 185 L141 185 C148 185 153 188 153 193 C153 198 148 201 141 201 L115 201 L115 185" stroke="#f7931a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
