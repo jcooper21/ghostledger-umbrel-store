@@ -32,6 +32,8 @@ from parsers import (
     generate_sample_price_csv
 )
 
+import requests
+
 
 # Page configuration
 st.set_page_config(
@@ -40,6 +42,28 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def get_current_btc_price():
+    """Fetch current BTC/CAD price from CoinGecko with caching."""
+    try:
+        url = "https://api.coingecko.com/api/v3/simple/price"
+        params = {"ids": "bitcoin", "vs_currencies": "cad", "include_24hr_change": "true"}
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if "bitcoin" in data and "cad" in data["bitcoin"]:
+                price = data["bitcoin"]["cad"]
+                change_24h = data["bitcoin"].get("cad_24h_change", 0)
+                return {"price": price, "change_24h": change_24h, "error": None}
+        return {"price": None, "change_24h": None, "error": f"API returned {response.status_code}"}
+    except requests.exceptions.Timeout:
+        return {"price": None, "change_24h": None, "error": "Timeout"}
+    except requests.exceptions.ConnectionError:
+        return {"price": None, "change_24h": None, "error": "Network error"}
+    except Exception as e:
+        return {"price": None, "change_24h": None, "error": str(e)}
 
 
 def init_session_state():
@@ -56,6 +80,8 @@ def init_session_state():
         st.session_state.prices_loaded = False
     if 'price_fetch_attempted' not in st.session_state:
         st.session_state.price_fetch_attempted = False
+    if 'price_error' not in st.session_state:
+        st.session_state.price_error = None
     if 'selected_year' not in st.session_state:
         st.session_state.selected_year = datetime.now().year
     
@@ -71,23 +97,41 @@ def fetch_prices():
     import time
     
     st.session_state.price_fetch_attempted = True
+    st.session_state.price_error = None
     
-    with st.spinner("👻 GhostLedger is fetching latest Bitcoin prices..."):
+    try:
         # Simple retry logic
         max_retries = 3
+        last_error = None
+        
         for i in range(max_retries):
-            success, msg = st.session_state.price_provider.fetch_from_coingecko()
-            if success:
-                st.session_state.prices_loaded = True
-                st.toast(f"✅ {msg}")
-                return
+            try:
+                # Ensure price_provider exists
+                if 'price_provider' not in st.session_state:
+                    st.session_state.price_provider = HistoricalPriceProvider()
+                
+                success, msg = st.session_state.price_provider.fetch_from_coingecko()
+                
+                if success:
+                    st.session_state.prices_loaded = True
+                    st.session_state.price_error = None
+                    return True
+                
+                last_error = msg
+            except Exception as e:
+                last_error = f"Exception: {str(e)}"
             
             # If failed, wait briefly before retry (unless it's the last attempt)
             if i < max_retries - 1:
                 time.sleep(2)
         
-        # If we get here, all retries failed
-        st.toast(f"⚠️ Could not auto-fetch prices: {msg}")
+        # If we get here, all retries failed - store the error
+        st.session_state.price_error = last_error
+        return False
+        
+    except Exception as e:
+        st.session_state.price_error = f"Fetch error: {str(e)}"
+        return False
 
 
 def render_sidebar():
@@ -115,15 +159,19 @@ def render_sidebar():
         )
         
         if st.session_state.get('prices_loaded', False):
-            st.success("✅ Price history loaded")
+            st.success("✅ Daily prices loaded from CoinGecko")
         else:
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                st.warning("⚠️ No prices loaded")
-            with col2:
-                if st.button("Retry"):
-                    fetch_prices()
-                    st.rerun()
+            # CoinGecko failed but fallback prices are available
+            st.info("📊 Using monthly average prices (fallback)")
+            st.caption("Fallback prices available for 2023-2026. For daily accuracy, upload CSV or retry API.")
+            # Show error message if we have one
+            if st.session_state.get('price_error'):
+                with st.expander("API Error Details"):
+                    st.error(f"{st.session_state.price_error}")
+            if st.button("🔄 Retry CoinGecko"):
+                st.session_state.price_fetch_attempted = False
+                fetch_prices()
+                st.rerun()
 
         
         with st.expander("Upload Manual CSV"):
@@ -567,6 +615,34 @@ def render_main_content():
     """Render the main content area."""
     st.title("👻 GhostLedger")
     st.caption(f"Bitcoin Tax Calculator for Canada | Tax Year: {st.session_state.get('selected_year', datetime.now().year)}")
+    
+    # Display current Bitcoin price at the top
+    price_data = get_current_btc_price()
+    if price_data["price"]:
+        col1, col2, col3 = st.columns([2, 2, 3])
+        with col1:
+            change = price_data.get("change_24h", 0)
+            delta_str = f"{change:+.2f}%" if change else None
+            st.metric(
+                "₿ Current BTC/CAD",
+                f"${price_data['price']:,.2f}",
+                delta=delta_str
+            )
+        with col2:
+            # Show last updated time
+            st.caption("")
+            st.caption("📡 Live from CoinGecko")
+    else:
+        # Show fallback price if API fails
+        current_month = datetime.now().strftime('%Y-%m')
+        fallback_price = st.session_state.get('price_provider', HistoricalPriceProvider()).fallback_monthly.get(current_month, 120000)
+        col1, col2 = st.columns([2, 5])
+        with col1:
+            st.metric("₿ BTC/CAD (Est.)", f"${fallback_price:,}")
+        with col2:
+            st.caption("⚠️ Using fallback price (API unavailable)")
+    
+    st.divider()
     
     render_metrics()
     
