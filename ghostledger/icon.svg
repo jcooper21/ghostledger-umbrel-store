@@ -1,12 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2d2d2d"/>
-      <stop offset="100%" style="stop-color:#1a1a1a"/>
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <!-- Background -->
-  <rect width="256" height="256" fill="url(#grad)"/>
+  <rect width="256" height="256" fill="#222222"/>
   <!-- Ghost body -->
   <path d="M128 35c-45 0-80 32-80 80v90c0 6 5 11 11 11h12c6 0 6-10 6-16 0-10 14-18 24-18s24 8 24 18c0 6 0 16 6 16h6c6 0 6-10 6-16 0-10 14-18 24-18s24 8 24 18c0 6 0 16 6 16h12c6 0 11-5 11-11v-90c0-48-35-80-80-80z" fill="#ffffff"/>
   <!-- Left eye -->
