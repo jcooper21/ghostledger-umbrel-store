@@ -2,7 +2,7 @@ manifestVersion: 1
 id: ghostledger
 category: finance
 name: GhostLedger
-version: "1.3.5"
+version: "1.3.6"
 tagline: Local-first Bitcoin tax calculator for Canada
 description: >-
   GhostLedger is a privacy-focused Bitcoin tax calculator built specifically 
@@ -32,7 +32,6 @@ website: https://github.com/ghostledger/ghostledger
 dependencies: []
 repo: https://github.com/ghostledger/ghostledger
 support: https://github.com/ghostledger/ghostledger/issues
-icon: https://raw.githubusercontent.com/jcooper21/ghostledger-umbrel-store/main/ghostledger/icon.svg
 port: 8501
 gallery: []
 path: ""
